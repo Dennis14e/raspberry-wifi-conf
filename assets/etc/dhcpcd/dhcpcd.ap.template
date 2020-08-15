@@ -57,5 +57,5 @@ slaac private
 
 
 interface {{ wifi_interface }}
-    static ip_address={{ ip_addr }}/24
-    nohook wpa_supplicant
+static ip_address={{ ip_addr }}/24
+nohook wpa_supplicant

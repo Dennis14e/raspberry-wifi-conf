@@ -1,8 +1,8 @@
-var _       = require("underscore")._,
-    async   = require("async"),
-    fs      = require("fs"),
-    exec    = require("child_process").exec,
-    config  = require("../config.json");
+import { _ } from "underscore";
+import { waterfall, series } from "async";
+import { readFile, writeFile } from "fs";
+import { exec } from "child_process";
+import { wifi_driver_type, access_point, wifi_interface } from "../config.json";
 
 // Better template format
 _.templateSettings = {
@@ -13,15 +13,15 @@ _.templateSettings = {
 // Helper function to write a given template to a file based on a given
 // context
 function write_template_to_file(template_path, file_name, context, callback) {
-    async.waterfall([
+    waterfall([
 
         function read_template_file(next_step) {
-            fs.readFile(template_path, {encoding: "utf8"}, next_step);
+            readFile(template_path, {encoding: "utf8"}, next_step);
         },
 
         function update_file(file_txt, next_step) {
             var template = _.template(file_txt);
-            fs.writeFile(file_name, template(context), next_step);
+            writeFile(file_name, template(context), next_step);
         }
 
     ], callback);
@@ -31,11 +31,11 @@ function write_template_to_file(template_path, file_name, context, callback) {
     Return a set of functions which we can use to manage and check our wifi
     connection information
 \*****************************************************************************/
-module.exports = function() {
+export default function() {
     // Detect which wifi driver we should use, the rtl871xdrv or the nl80211
     exec("iw list", function(error, stdout, stderr) {
         if (stderr.match(/^nl80211 not found/)) {
-            config.wifi_driver_type = "rtl871xdrv";
+            wifi_driver_type = "rtl871xdrv";
         }
     });
 
@@ -68,20 +68,20 @@ module.exports = function() {
         function run_command_and_set_fields(cmd, fields, callback) {
             exec(cmd, function(error, stdout, stderr) {
                 if (error) return callback(error);
-                
+
                 for (var key in fields) {
                     re = stdout.match(fields[key]);
                     if (re && re.length > 1) {
                         output[key] = re[1];
                     }
                 }
-                
+
                 callback(null);
             });
         }
 
         // Run a bunch of commands and aggregate info
-        async.series([
+        series([
             function run_ifconfig(next_step) {
                 run_command_and_set_fields("ifconfig wlan0", ifconfig_fields, next_step);
             },
@@ -95,7 +95,7 @@ module.exports = function() {
     },
 
     _reboot_wireless_network = function(wlan_iface, callback) {
-        async.series([
+        series([
             function down(next_step) {
                 exec("sudo ifconfig " + wlan_iface + " down", function(error, stdout, stderr) {
                     if (!error) console.log("ifconfig " + wlan_iface + " down successful...");
@@ -134,17 +134,16 @@ module.exports = function() {
 
     // Access Point related functions
     _is_ap_enabled_sync = function(info) {
-        
-        var is_ap = info["ap_ssid"] == config.access_point.ssid;
-        
-        if(is_ap == true){
-			return info["ap_ssid"];
-		}
-		else{
-			
-			return null;
-		}
-        
+
+        var is_ap = info["ap_ssid"] == access_point.ssid;
+
+        if (is_ap == true){
+            return info["ap_ssid"];
+        }
+        else {
+            return null;
+        }
+
     },
 
     _is_ap_enabled = function(callback) {
@@ -164,21 +163,21 @@ module.exports = function() {
                 return callback(error);
             }
 
-            if (result_addr && !config.access_point.force_reconfigure) {
+            if (result_addr && !access_point.force_reconfigure) {
                 console.log("\nAccess point is enabled with ADDR: " + result_addr);
                 return callback(null);
-            } else if (config.access_point.force_reconfigure) {
+            } else if (access_point.force_reconfigure) {
                 console.log("\nForce reconfigure enabled - reset AP");
             } else {
                 console.log("\nAP is not enabled yet... enabling...");
             }
 
-            var context = config.access_point;
+            var context = access_point;
             context["enable_ap"] = true;
-            context["wifi_driver_type"] = config.wifi_driver_type;
+            context["wifi_driver_type"] = wifi_driver_type;
 
             // Here we need to actually follow the steps to enable the ap
-            async.series([
+            series([
 
                 // Enable the access point ip and netmask + static
                 // DHCP for the wlan0 interface
@@ -214,9 +213,9 @@ module.exports = function() {
                     });
                 },
 
-                
+
                 function reboot_network_interfaces(next_step) {
-                    _reboot_wireless_network(config.wifi_interface, next_step);
+                    _reboot_wireless_network(wifi_interface, next_step);
                 },
 
                 function restart_hostapd_service(next_step) {
@@ -226,7 +225,7 @@ module.exports = function() {
                         next_step();
                     });
                 },
-                
+
                 function restart_dnsmasq_service(next_step) {
                     exec("sudo systemctl restart dnsmasq", function(error, stdout, stderr) {
                         if (!error) console.log("... dnsmasq server restarted!");
@@ -234,7 +233,7 @@ module.exports = function() {
                         next_step();
                     });
                 },
-                
+
 
             ], callback);
         });
@@ -251,16 +250,16 @@ module.exports = function() {
                 return callback(null);
             }
 
-            async.series([
-            
-				
-				//Add new network
-				function update_wpa_supplicant(next_step) {
+            series([
+
+
+                //Add new network
+                function update_wpa_supplicant(next_step) {
                     write_template_to_file(
                         "./assets/etc/wpa_supplicant/wpa_supplicant.conf.template",
                         "/etc/wpa_supplicant/wpa_supplicant.conf",
                         connection_info, next_step);
-				},
+                },
 
                 function update_interfaces(next_step) {
                     write_template_to_file(
@@ -285,14 +284,14 @@ module.exports = function() {
                         connection_info, next_step);
                 },
 
-				function restart_dnsmasq_service(next_step) {
+                function restart_dnsmasq_service(next_step) {
                     exec("sudo systemctl stop dnsmasq", function(error, stdout, stderr) {
                         if (!error) console.log("... dnsmasq server stopped!");
                         else console.log("... dnsmasq server failed! - " + stdout);
                         next_step();
                     });
                 },
-                
+
                 function restart_hostapd_service(next_step) {
                     exec("sudo systemctl stop hostapd", function(error, stdout, stderr) {
                         //console.log(stdout);
@@ -300,7 +299,7 @@ module.exports = function() {
                         next_step();
                     });
                 },
-                
+
                 function restart_dhcp_service(next_step) {
                     exec("sudo systemctl restart dhcpcd", function(error, stdout, stderr) {
                         if (!error) console.log("... dhcpcd server restarted!");
@@ -310,7 +309,7 @@ module.exports = function() {
                 },
 
                 function reboot_network_interfaces(next_step) {
-                    _reboot_wireless_network(config.wifi_interface, next_step);
+                    _reboot_wireless_network(wifi_interface, next_step);
                 },
 
             ], callback);

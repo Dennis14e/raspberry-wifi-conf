@@ -1,10 +1,10 @@
-var exec    = require("child_process").exec;
+import { exec } from "child_process";
 
 /*****************************************************************************\
     Return a function which is responsible for using "iwlist scan" to figure
     out the list of visible SSIDs along with their RSSI (and other info)
 \*****************************************************************************/
-module.exports = function(cmd_options, callback) {
+export default function(cmd_options, callback) {
     // Handle case where no options are passed in
     if (typeof(cmd_options) == "function" && typeof(callback) == "undefined") {
         callback    = cmd_options;

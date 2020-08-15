@@ -1,13 +1,12 @@
-var _       = require("underscore")._,
-    async   = require("async"),
-    fs      = require("fs"),
-    exec    = require("child_process").exec,
-    config  = require("../config.json");
+import { _ } from "underscore";
+import { series, parallel } from "async";
+import { exists } from "fs";
+import { exec } from "child_process";
 
 /*****************************************************************************\
     Return a set of functions which we can use to manage our dependencies
 \*****************************************************************************/
-module.exports = function() {
+export default function() {
 
     // Check dependencies based on the input "deps" object.
     // deps will contain: {"binaries": [...], "files":[...]}
@@ -35,20 +34,20 @@ module.exports = function() {
         var check_file_fns = _.map(deps["files"], function(file) {
             //console.log("Building || function for " + file);
             return function(callback) {
-                fs.exists(file, function(exists) {
-                    if (exists) return callback(null);
+                exists(file, function(file_exists) {
+                    if (file_exists) return callback(null);
                     return callback(file + " does not exist");
                 });
             };
         });
 
         // Dispatch the parallel functions
-        async.series([
+        series([
             function check_binaries(next_step) {
-                async.parallel(check_exe_fns, next_step);
+                parallel(check_exe_fns, next_step);
             },
             function check_files(next_step) {
-                async.parallel(check_file_fns, next_step);
+                parallel(check_file_fns, next_step);
             },
         ], callback);
     };
