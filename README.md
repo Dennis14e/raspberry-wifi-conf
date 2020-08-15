@@ -4,17 +4,13 @@ A Node application which makes connecting your Raspberry Pi to your home wifi ea
 
 Tested on Stretch and Raspberry Pi 3
 
-## RPI 4 Note:
-
-I realize that a bunch of folks will try this out using the new Raspberry Pi 4. I caution you that this is not something I have tried, I believe this was tested on a Raspberry Pi 3 to success. However, if you find that this works on a Raspberry Pi 4, please let me know and I will adjust the README accordingly. If it does not work, it is probably a few PRs away from success :)
-
 ## Why?
 
 When unable to connect to a wifi network, this service will turn the Raspberry Pi into a wireless AP (Access Point). This allows us to connect to it via a phone or other device and configure our home wifi network (for example).
 
-Once configured, it prompts the PI to reboot with the appropriate wifi credentials. If this process fails, it immediately re-enables the PI as an AP which can be configurable again.
+Once configured, it prompts the Pi to reboot with the appropriate wifi credentials. If this process fails, it immediately re-enables the Pi as an AP which can be configurable again.
 
-This project broadly follows these [instructions](https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md) in setting up a RaspberryPi as a wireless AP.
+This project broadly follows these [instructions](https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md) in setting up a Raspberry Pi as a wireless AP.
 
 ## Requirements
 
@@ -31,7 +27,7 @@ $ git clone https://github.com/Dennis14e/raspberry-wifi-conf.git
 $ cd raspberry-wifi-conf
 $ npm update
 $ bower install
-$ sudo npm run-script provision
+$ sudo npm run provision
 $ sudo npm start
 ```
 
@@ -51,7 +47,7 @@ $ sudo systemctl start raspberry-wifi-conf.service
 
 #### `dhcpcd`
 
-Latest versions of raspbian use dhcpcd to manage network interfaces, since we are running our own dhcp server, if you have dhcpcd installed - make sure you deny the wifi interface as described in the installation section.
+Latest versions of Raspbian use dhcpcd to manage network interfaces, since we are running our own dhcp server, if you have dhcpcd installed - make sure you deny the wifi interface as described in the installation section.
 
 TODO: Handle this automatically.
 
