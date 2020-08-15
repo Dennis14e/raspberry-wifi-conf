@@ -38,7 +38,7 @@ $ sudo npm start
 
 ## Setup the app as a service
 
-There is a startup script included to make the server starting and stopping easier. Do remember that the application is assumed to be installed under `/home/pi/raspberry-wifi-conf`. Feel free to change this in the `assets/init.d/raspberry-wifi-conf` file.
+There is a startup script included to make the server starting and stopping easier. Do remember that the application is assumed to be installed under `/opt/raspberry-wifi-conf`. Feel free to change this in the `assets/systemd/raspberry-wifi-conf.service` file.
 
 ```sh
 $ sudo cp assets/systemd/raspberry-wifi-conf.service /etc/systemd/system/raspberry-wifi-conf.service

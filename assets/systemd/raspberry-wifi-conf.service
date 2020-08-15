@@ -1,0 +1,11 @@
+[Unit]
+Description=Raspberry Pi WiFi Configuration
+Documentation=https://github.com/Dennis14e/raspberry-wifi-conf/
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /opt/raspberry-wifi-conf/server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
