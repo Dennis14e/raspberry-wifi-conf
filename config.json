@@ -1,6 +1,5 @@
 {
     "wifi_interface": "wlan0",
-    "wifi_driver_type": "nl80211",
     "access_point": {
         "force_reconfigure":  false,
         "wifi_interface":     "wlan0",
@@ -9,7 +8,6 @@
         "passphrase":         "123456z*",
         "domain":             "rpi.config",
         "ip_addr":            "192.168.88.1",
-        "netmask":            "255.255.255.0",
         "subnet_ip":          "192.168.88.0",
         "broadcast_address":  "192.168.88.255",
         "subnet_range_start": "192.168.88.100",

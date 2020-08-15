@@ -49,25 +49,6 @@ $ sudo systemctl start raspberry-wifi-conf.service
 
 ### Gotchas
 
-#### `hostapd`
-
-The `hostapd` application does not like to behave itself on some wifi adapters (RTL8192CU et al). This link does a good job explaining the issue and the remedy: [Edimax Wifi Issues](http://willhaley.com/blog/raspberry-pi-hotspot-ew7811un-rtl8188cus/). The gist of what you need to do is as follows:
-
-```
-# run iw to detect if you have a rtl871xdrv or nl80211 driver
-$ iw list
-```
-
-If the above says `nl80211 not found.` it means you are running the `rtl871xdrv` driver and probably need to update the `hostapd` binary as follows:
-```
-$ cd raspberry-wifi-conf
-$ sudo mv /usr/sbin/hostapd /usr/sbin/hostapd.OLD
-$ sudo mv assets/bin/hostapd.rtl871xdrv /usr/sbin/hostapd
-$ sudo chmod 755 /usr/sbin/hostapd
-```
-
-Note that the `wifi_driver_type` config variable is defaulted to the `nl80211` driver. However, if `iw list` fails on the app startup, it will automatically set the driver type of `rtl871xdrv`. Remember that even though you do not need to update the config / default value - you will need to use the updated `hostapd` binary bundled with this app.
-
 #### `dhcpcd`
 
 Latest versions of raspbian use dhcpcd to manage network interfaces, since we are running our own dhcp server, if you have dhcpcd installed - make sure you deny the wifi interface as described in the installation section.

@@ -2,7 +2,7 @@ import { _ } from "underscore";
 import { waterfall, series } from "async";
 import { readFile, writeFile } from "fs";
 import { exec } from "child_process";
-import { wifi_driver_type, access_point, wifi_interface } from "../config.json";
+import { access_point, wifi_interface } from "../config.json";
 
 // Better template format
 _.templateSettings = {
@@ -32,13 +32,6 @@ function write_template_to_file(template_path, file_name, context, callback) {
     connection information
 \*****************************************************************************/
 export default function() {
-    // Detect which wifi driver we should use, the rtl871xdrv or the nl80211
-    exec("iw list", function(error, stdout, stderr) {
-        if (stderr.match(/^nl80211 not found/)) {
-            wifi_driver_type = "rtl871xdrv";
-        }
-    });
-
     // Hack: this just assumes that the outbound interface will be "wlan0"
 
     // Define some globals
@@ -174,7 +167,6 @@ export default function() {
 
             var context = access_point;
             context["enable_ap"] = true;
-            context["wifi_driver_type"] = wifi_driver_type;
 
             // Here we need to actually follow the steps to enable the ap
             series([
